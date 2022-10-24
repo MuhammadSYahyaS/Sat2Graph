@@ -5,6 +5,7 @@ import scipy
 import scipy.ndimage.filters as filters
 import scipy.ndimage.morphology as morphology
 import numpy as np 
+import matplotlib.pyplot as plt
 from rtree import index 
 import sys 
 import pickle 
@@ -31,7 +32,7 @@ def graph_refine(graph, isolated_thr = 150, spurs_thr = 30, three_edge_loop_thr 
 	gid = 0 
 	grouping = {}
 
-	for k, v in neighbors.iteritems():
+	for k, v in neighbors.items():
 		if k not in grouping:
 			# start a search 
 
@@ -392,7 +393,7 @@ def _vis(_node_neighbors, save_file, size=2048, bk=None, draw_intersection = Fal
 
 
 	if bk is not None:
-		img = scipy.ndimage.imread(bk)
+		img = plt.imread(bk)
 
 		img = img.astype(np.float)
 		img = (img - 127)*0.75 + 127 
@@ -405,14 +406,14 @@ def _vis(_node_neighbors, save_file, size=2048, bk=None, draw_intersection = Fal
 	edge_width = 2
 	
 	
-	for k,v in node_neighbors.iteritems():
+	for k,v in node_neighbors.items():
 		n1 = k 
 		for n2 in v:
 			cv2.line(img, (n1[1], n1[0]), (n2[1], n2[0]), color_edge,edge_width)
 
 	scale = 1
 	
-	for k,v in node_neighbors.iteritems():
+	for k,v in node_neighbors.items():
 		n1 = k 
 		cv2.circle(img, (int(n1[1]) * scale,int(n1[0]) * scale), 2, (255,0,0),-1)
 		
@@ -420,7 +421,7 @@ def _vis(_node_neighbors, save_file, size=2048, bk=None, draw_intersection = Fal
 	cp, _ = locate_stacking_road(node_neighbors)
 
 
-	for k, v in cp.iteritems():
+	for k, v in cp.items():
 		e1 = k[0]
 		e2 = k[1]
 

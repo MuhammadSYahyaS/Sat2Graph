@@ -91,7 +91,7 @@ for item in dataset_cfg:
 			img, _ = md2.GetMapInRect(lat_st, lon_st, lat_ed, lon_ed, start_lat = lat_st, start_lon = lon_st, zoom=zoom, folder = folder_mapbox_cache)
 			print(np.shape(img))
 
-			img = scipy.misc.imresize(img.astype(np.uint8), (2048,2048))
+			img = np.array(Image.fromarray(img.astype(np.uint8)).resize((2048,2048)))
 			Image.fromarray(img).save(dataset_folder+"/region_%d_sat.png" % c)
 
 
@@ -100,7 +100,7 @@ for item in dataset_cfg:
 
 			node_neighbor = {} # continuous
 
-			for node_id, node_info in OSMMap.nodedict.iteritems():
+			for node_id, node_info in OSMMap.nodedict.items():
 				lat = node_info["lat"]
 				lon = node_info["lon"]
 
@@ -108,7 +108,7 @@ for item in dataset_cfg:
 
 
 				neighbors = []
-				for nid in node_info["to"].keys() + node_info["from"].keys() :
+				for nid in list(node_info["to"].keys()) + list(node_info["from"].keys()) :
 					if nid not in neighbors:
 						neighbors.append(nid)
 
@@ -123,7 +123,8 @@ for item in dataset_cfg:
 			node_neighbor = graphlib.graphDensify(node_neighbor)
 			node_neighbor_region = graphlib.graph2RegionCoordinate(node_neighbor, [lat_st,lon_st,lat_ed,lon_ed])
 			prop_graph = dataset_folder+"/region_%d_graph_gt.pickle" % c
-			pickle.dump(node_neighbor_region, open(prop_graph, "w"))
+			with open(prop_graph, "wb") as fp:
+				pickle.dump(node_neighbor_region, fp)
 
 			#graphlib.graphVis2048(node_neighbor,[lat_st,lon_st,lat_ed,lon_ed], "dense.png")
 			graphlib.graphVis2048Segmentation(node_neighbor, [lat_st,lon_st,lat_ed,lon_ed], dataset_folder+"/region_%d_" % c + "gt.png")
@@ -131,8 +132,10 @@ for item in dataset_cfg:
 			node_neighbor_refine, sample_points = graphlib.graphGroundTruthPreProcess(node_neighbor_region)
 
 			refine_graph = dataset_folder+"/region_%d_" % c + "refine_gt_graph.p"
-			pickle.dump(node_neighbor_refine, open(refine_graph, "w"))
-			json.dump(sample_points, open(dataset_folder+"/region_%d_" % c + "refine_gt_graph_samplepoints.json", "w"), indent=2)
+			with open(refine_graph, "wb") as fp:
+				pickle.dump(node_neighbor_refine, fp)
+			with open(dataset_folder+"/region_%d_" % c + "refine_gt_graph_samplepoints.json", "w") as fp:
+				json.dump(sample_points, fp, indent=2)
 
 			c+=1
 

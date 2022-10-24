@@ -9,6 +9,7 @@ import math
 import cv2
 import numpy as np 
 import tensorflow as tf 
+import matplotlib.pyplot as plt
 from time import time 
 from subprocess import Popen
 from model import Sat2GraphModel
@@ -70,7 +71,7 @@ class S(BaseHTTPRequestHandler):
 
 		# run the model 
 
-		sat_img = scipy.ndimage.imread(input_file).astype(np.float)
+		sat_img = plt.imread(input_file).astype(np.float)
 		max_v = 255
 		sat_img = (sat_img.astype(np.float)/ max_v - 0.5) * 0.9 
 		sat_img = sat_img.reshape((1,704,704,3))
@@ -129,7 +130,7 @@ class S(BaseHTTPRequestHandler):
 			else:
 				return False 
 
-		for nid, nei in graph.iteritems():
+		for nid, nei in graph.items():
 			for nn in nei:
 				if inrange(nn) or inrange(nid):
 					edge = (addbias(nid), addbias(nn))

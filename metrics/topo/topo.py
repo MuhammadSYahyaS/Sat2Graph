@@ -7,6 +7,7 @@ import graph as splfy
 import code
 import random
 import showTOPO
+import matplotlib.pyplot as plt
 from rtree import index
 from time import time 
 from hopcroftkarp import HopcroftKarp
@@ -106,7 +107,7 @@ def TOPOGenerateStartingPoints(OSMMap, check = True, density = 0.00050, region =
     svgEdges = []
 
     if image != 'NULL':
-        img = scipy.ndimage.imread(image)
+        img = plt.imread(image)
         sizex = np.shape(img)[0]
         sizey = np.shape(img)[1]
 
@@ -223,7 +224,7 @@ def TOPOGenerateStartingPoints(OSMMap, check = True, density = 0.00050, region =
                                 result.append((lat, lon, node_list[j], node_list[j+1], alpha * dist - dists[j], dists[j+1] - alpha * dist))
 
 
-    for _,edge in OSMMap.edges.iteritems():
+    for _,edge in OSMMap.edges.items():
 
         svgEdges.append((OSMMap.nodes[edge[0]][0],OSMMap.nodes[edge[0]][1], OSMMap.nodes[edge[1]][0], OSMMap.nodes[edge[1]][1]))
 
@@ -358,7 +359,7 @@ def TOPOGeneratePairs(GPSMap, OSMMap, OSMList, threshold = 0.00010, region = Non
     
     svgEdges = []
 
-    for _,edge in OSMMap.edges.iteritems():
+    for _,edge in OSMMap.edges.items():
         svgEdges.append((OSMMap.nodes[edge[0]][0],OSMMap.nodes[edge[0]][1], OSMMap.nodes[edge[1]][0], OSMMap.nodes[edge[1]][1]))
 
 
@@ -379,7 +380,7 @@ def TOPOGenerateList(GPSMap, OSMMap, check = True, threshold = 0.00010, region =
     result = {}
 
     
-    img = scipy.ndimage.imread(image)
+    img = plt.imread(image)
 
     sizex = np.shape(img)[0]
     sizey = np.shape(img)[1]
@@ -404,7 +405,7 @@ def TOPOGenerateList(GPSMap, OSMMap, check = True, threshold = 0.00010, region =
 
     candidateNode = {}
 
-    for edgeId, edge in GPSMap.edges.iteritems():
+    for edgeId, edge in GPSMap.edges.items():
 
         n1 = edge[0]
         n2 = edge[1]
@@ -506,7 +507,7 @@ def TOPO(GPSMap, OSMMap, step = 0.00005, r = 0.00300, num = 1000, threshold = 0.
     
     candidateNode = {}
 
-    for edgeId, edge in GPSMap.edges.iteritems():
+    for edgeId, edge in GPSMap.edges.items():
 
         n1 = edge[0]
         n2 = edge[1]
@@ -707,7 +708,7 @@ def TOPOWithPairs(GPSMap, OSMMap, GPSList, OSMList, step = 0.00005, r = 0.00300,
 
     returnResult = []
 
-    for k,itemGPS in GPSList.iteritems():
+    for k,itemGPS in GPSList.items():
 
 
         itemOSM = OSMList[k]
@@ -809,7 +810,7 @@ def TOPOWithPairs(GPSMap, OSMMap, GPSList, OSMList, step = 0.00005, r = 0.00300,
 
             matchedNum = len(matches.keys()) / 2
 
-            # for k,v in matches.iteritems():
+            # for k,v in matches.items():
             # 	if (k,v) in cost_map.keys():
             # 		soft_matchedNum += max(min(((threshold - cost_map[(k,v)]) / threshold),1.0),0.0)
 
@@ -887,7 +888,7 @@ def TOPOWithPairs(GPSMap, OSMMap, GPSList, OSMList, step = 0.00005, r = 0.00300,
 
             matchedNum = len(matches.keys()) / 2
 
-            # for k,v in matches.iteritems():
+            # for k,v in matches.items():
             # 	if (k,v) in cost_map.keys():
             # 		soft_matchedNum += max(min(((threshold - cost_map[(k,v)]) / threshold),1.0),0.0)
 
@@ -981,7 +982,7 @@ def TOPOWithPairsNew(GPSMap, OSMMap, GPSList, OSMList, step = 0.00005, r = 0.003
 
     number_of_holes = []
 
-    for k,itemGPS in GPSList.iteritems():
+    for k,itemGPS in GPSList.items():
 
 
         itemOSM = OSMList[k]

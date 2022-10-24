@@ -29,7 +29,7 @@ def RenderSVG(marbles, holes, matched_marbles, matched_holes, clat, clon, r, fil
 
     if OSMMap is not None:
         roadmap = OSMMap 
-        for edgeId, edge in roadmap.edges.iteritems():
+        for edgeId, edge in roadmap.edges.items():
             n1 = edge[0]
             n2 = edge[1]
 

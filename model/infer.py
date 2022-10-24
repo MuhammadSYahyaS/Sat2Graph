@@ -14,6 +14,7 @@ import numpy as np
 import tensorflow as tf 
 from time import time 
 import sys 
+import matplotlib.pyplot as plt
 from PIL import Image 
  
 from model import Sat2GraphModel
@@ -43,8 +44,8 @@ snap_w = 50
 
 # run the model 
 
-sat_img = scipy.ndimage.imread(input_file)
-sat_img = scipy.misc.imresize(sat_img, (2048,2048)).astype(np.float)
+sat_img = plt.imread(input_file)
+sat_img = np.array(Image.fromarray(sat_img).resize((2048,2048))).astype(np.float)
 
 max_v = 255
 sat_img = (sat_img.astype(np.float)/ max_v - 0.5) * 0.9 
@@ -94,10 +95,10 @@ t0 = time()
 
 
 # vis 
-sat_img = scipy.ndimage.imread(input_file)
-sat_img = scipy.misc.imresize(sat_img, (2048,2048))
+sat_img = plt.imread(input_file)
+sat_img = np.array(Image.fromarray(sat_img).resize((2048,2048)))
 
-for k,v in graph.iteritems():
+for k,v in graph.items():
 	n1 = k 
 	for n2 in v:
 		cv2.line(sat_img, (n1[1], n1[0]), (n2[1], n2[0]), (255,255,0),3)

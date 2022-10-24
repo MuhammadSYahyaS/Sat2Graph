@@ -9,6 +9,7 @@ import os.path
 import scipy.ndimage
 import scipy.misc
 import pickle, socket
+import matplotlib.pyplot as plt
 from PIL import Image
 import xml.etree.ElementTree
 from time import sleep
@@ -121,7 +122,7 @@ def GetMapAroundALoc(lat,lon, rangeInMeter, heading, folder = "googlemap/", star
 
 
             if Succ :
-                subimg = scipy.ndimage.imread(filename).astype(np.uint8)
+                subimg = plt.imread(filename).astype(np.uint8)
 
                 result_image[(ilat_max - i)*resolution:(ilat_max - i + 1)*resolution,(j-ilon_min)*resolution:(j+1 -ilon_min)*resolution] = subimg[padding:resolution+padding, padding:resolution+padding]
 
@@ -170,7 +171,7 @@ def GetMapAroundALoc(lat,lon, rangeInMeter, heading, folder = "googlemap/", star
 
     #print(size[0], newsize0)
 
-    #scale_image = scipy.misc.imresize(result_image2, (newsize0, size[1], size[2]), mode='RGB')
+    #scale_image = np.array(Image.fromarray(result_image2).resize((newsize0, size[1], size[2])))
 
     #print(np.shape(scale_image))
 
@@ -291,7 +292,7 @@ def GetMapInRect(min_lat,min_lon, max_lat, max_lon , folder = "googlemap/", star
 
             if Succ == True:
                 try:
-                    subimg = scipy.ndimage.imread(filename).astype(np.uint8)
+                    subimg = plt.imread(filename).astype(np.uint8)
                 except:
                     print("image file is damaged, try to redownload it", filename)
                     Succ = False
@@ -305,7 +306,7 @@ def GetMapInRect(min_lat,min_lon, max_lat, max_lon , folder = "googlemap/", star
                 if filename in img_cache.keys():
                     subimg = img_cache[filename]
                 else:
-                    subimg = scipy.ndimage.imread(filename).astype(np.uint8)
+                    subimg = plt.imread(filename).astype(np.uint8)
                     #img_cache[filename] = subimg
 
                 if np.shape(subimg)[2] ==4:
@@ -313,7 +314,8 @@ def GetMapInRect(min_lat,min_lon, max_lat, max_lon , folder = "googlemap/", star
 
 
                 try:
-                    result_image[(ilat_max - i)*resolution/scale:(ilat_max - i + 1)*resolution/scale,(j-ilon_min)*resolution/scale:(j+1 -ilon_min)*resolution/scale] = scipy.misc.imresize(subimg[padding:resolution+padding, padding:resolution+padding],1.0/scale, mode="RGB")
+                    __arr = subimg[padding:resolution+padding, padding:resolution+padding]
+                    result_image[(ilat_max - i)*resolution/scale:(ilat_max - i + 1)*resolution/scale,(j-ilon_min)*resolution/scale:(j+1 -ilon_min)*resolution/scale] = np.array(Image.fromarray(__arr).resize(round(__arr.shape[1]/scale), round(__arr.shape[0]/scale)))
                 except:
                     print(np.shape(subimg))
                     ok = False

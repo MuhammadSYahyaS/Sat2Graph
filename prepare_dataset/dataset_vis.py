@@ -6,14 +6,14 @@ import sys
 def drawgraph(graph, filename):
 	img = np.ones((2048,2048,3), dtype=np.uint8)*255
 
-	for n, v in graph.iteritems():
+	for n, v in graph.items():
 		for nei in v:
 			p1 = (int(n[1]), int(n[0]))
 			p2 = (int(nei[1]), int(nei[0]))
 
 			img = cv2.line(img, p1, p2, (0,0,0),2)
 
-	for n, v in graph.iteritems():
+	for n, v in graph.items():
 		p1 = (int(n[1]), int(n[0]))
 		img = cv2.circle(img, p1, 2, (0,0,255),-1)
 

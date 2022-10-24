@@ -74,7 +74,7 @@ def simpilfyGraph(node_neighbor, e=2.5):
 
 	new_node_neighbor = {}
 
-	for node, node_nei in node_neighbor.iteritems():
+	for node, node_nei in node_neighbor.items():
 		if len(node_nei) == 1 or len(node_nei) > 2:
 			if node in visited:
 				continue
