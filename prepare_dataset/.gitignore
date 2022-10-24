@@ -3,6 +3,6 @@
 **/*.log
 **/*-log
 **/*-log*
-global_dataset_mapbox_no_service_road
+*global_dataset_mapbox_no_service_road*
 tmp
 mapbox_cache

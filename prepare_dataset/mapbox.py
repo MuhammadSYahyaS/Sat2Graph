@@ -75,7 +75,7 @@ def GetMapInRect(min_lat,min_lon, max_lat, max_lon , folder = "mapbox_cache/", s
 			break 
 
 		for j in range(mapbox1[1] - mapbox2[1]+1):
-			filename = folder + "/%d_%d_%d.jpg" % (zoom, i+mapbox1[0], j+mapbox2[1])
+			filename = os.path.join(folder, "%d_%d_%d.jpg" % (zoom, i+mapbox1[0], j+mapbox2[1]))
 			Succ = os.path.isfile(filename)
 
 			if Succ == True:
