@@ -111,7 +111,7 @@ max_degree = 6
 os.makedirs(model_save_folder, exist_ok=True)
 
 gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.95)
-with tf.Session(config=tf.ConfigProto(device_count = {'GPU': 0}, gpu_options=gpu_options)) as sess:
+with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
 	model = Sat2GraphModel(sess, image_size=image_size, resnet_step = args.resnet_step, batchsize = batch_size, channel = args.channel, mode = args.mode)
 	
 	if args.model_recover is not None:
@@ -210,14 +210,14 @@ with tf.Session(config=tf.ConfigProto(device_count = {'GPU': 0}, gpu_options=gpu
 				gt_vector = np.pad(gt_vector, ((0,0),(32,32),(32,32),(0,0)), 'constant')
 				gt_prob = np.pad(gt_prob,((0,0),(32,32),(32,32),(0,0)), 'constant')
 				
-				for x in range(0,352*6-176-88,176/2):
+				for x in tqdm(range(0,352*6-176-88,176//2)):
 					
-					progress = x/88
+					# progress = x/88
 
-					sys.stdout.write("\rProcessing Tile %d ...  "%tile_id + ">>" * progress + "--" * (20-progress))
-					sys.stdout.flush()
+					# sys.stdout.write("\rProcessing Tile %d ...  "%tile_id + ">>" * progress + "--" * (20-progress))
+					# sys.stdout.flush()
 
-					for y in range(0,352*6-176-88,176/2):
+					for y in range(0,352*6-176-88,176//2):
 
 						alloutputs  = model.Evaluate(input_sat[:,x:x+image_size, y:y+image_size,:], gt_prob[:,x:x+image_size, y:y+image_size,:], gt_vector[:,x:x+image_size, y:y+image_size,:], gt_seg)
 						_output = alloutputs[1]
