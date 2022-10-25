@@ -19,9 +19,10 @@ def drawgraph(graph, filename):
 
 	cv2.imwrite(filename, img)
 
-
-graph1 = pickle.load(open("global_dataset_mapbox_no_service_road/region_%s_graph_gt.pickle" % sys.argv[1]))
-graph2 = pickle.load(open("global_dataset_mapbox_no_service_road/region_%s_refine_gt_graph.p" % sys.argv[1]))
+with open("global_dataset_mapbox_no_service_road/region_%s_graph_gt.pickle" % sys.argv[1], "rb") as fp:
+	graph1 = pickle.load(fp)
+with open(open("global_dataset_mapbox_no_service_road/region_%s_refine_gt_graph.p" % sys.argv[1]), "rb") as fp:
+	graph2 = pickle.load(fp)
 
 
 drawgraph(graph1, "org.png")

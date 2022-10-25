@@ -1,13 +1,12 @@
+import os
 import scipy 
 import numpy as np 
 import random 
 import pickle 
 import math 
-from PIL import Image 
 import json 
 import scipy.ndimage 
 import math 
-import cv2
 import matplotlib.pyplot as plt
 
 
@@ -175,7 +174,8 @@ class Sat2GraphDataLoader():
 		tiles_vector[:,:,:,1::2] = 1
 	
 		try:
-			neighbors = pickle.load(open(self.folder + "/region_%d_refine_gt_graph.p" % ind))
+			with open(os.path.join(self.folder, "region_%d_refine_gt_graph.p" % ind), "rb") as fp:
+				neighbors = pickle.load(fp)
 			neighbors = neighbor_to_integer(neighbors)
 
 			if self.transpose:
@@ -261,8 +261,8 @@ class Sat2GraphDataLoader():
 
 			
 
-
-			neighbors = pickle.load(open(self.folder + "/region_%d_refine_gt_graph.p" % ind))
+			with open(os.path.join(self.folder, "region_%d_refine_gt_graph.p" % ind), "rb") as fp:
+				neighbors = pickle.load(fp)
 			neighbors = neighbor_to_integer(neighbors)
 
 			if self.transpose:

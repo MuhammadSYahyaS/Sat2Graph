@@ -1,9 +1,10 @@
 from model import Sat2GraphModel
 from dataloader import Sat2GraphDataLoader as Sat2GraphDataLoaderOSM
 #from dataloader_spacenet import Sat2GraphDataLoader as Sat2GraphDataLoaderSpacenet
-from subprocess import Popen 
 import numpy as np 
 from time import time 
+import os
+import shutil
 import tensorflow as tf 
 from decoder import DecodeAndVis 
 from PIL import Image 
@@ -11,6 +12,7 @@ import sys
 import random 
 import json 
 import argparse
+from tqdm import tqdm
 
 
 # This file supports training and testing Sat2Graph models on both the 20cities dataset and Spacenet dataset.  
@@ -32,6 +34,10 @@ parser.add_argument('-model_save', action='store', dest='model_save', type=str,
 
 parser.add_argument('-instance_id', action='store', dest='instance_id', type=str,
                     help='instance_id ', required =True)
+
+
+parser.add_argument('-osmdataset', action='store', dest='osmdataset', type=str,
+                    help='Path to osmdataset directory ', required =False, default="../data/20cities/")
 
 parser.add_argument('-model_recover', action='store', dest='model_recover', type=str,
                     help='model recover ', required =False, default=None)
@@ -82,7 +88,7 @@ instance_id = args.instance_id + "_" + str(args.image_size) + "_" + str(args.res
 run = "run-"+datetime.today().strftime('%Y-%m-%d-%H-%M-%S')+"-"+instance_id
 
 
-osmdataset = "../data/20cities/"
+osmdataset = args.osmdataset
 spacenetdataset = "../data/spacenet/"
 
 image_size = args.image_size
@@ -95,17 +101,17 @@ batch_size = 2 # 352 * 352
 if args.mode != "train":
 	batch_size = 1
 
-validation_folder = "validation_" + instance_id 
-Popen("mkdir -p "+validation_folder, shell=True).wait()
+validation_folder = os.path.join("artifacts", "validation_" + instance_id) 
+os.makedirs(validation_folder, exist_ok=True)
 
-model_save_folder = args.model_save + instance_id + "/"
+model_save_folder = os.path.join("artifacts", args.model_save + instance_id)
 
 max_degree = 6
 
-Popen("mkdir -p %s" % model_save_folder, shell=True).wait()
+os.makedirs(model_save_folder, exist_ok=True)
 
 gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.95)
-with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
+with tf.Session(config=tf.ConfigProto(device_count = {'GPU': 0}, gpu_options=gpu_options)) as sess:
 	model = Sat2GraphModel(sess, image_size=image_size, resnet_step = args.resnet_step, batchsize = batch_size, channel = args.channel, mode = args.mode)
 	
 	if args.model_recover is not None:
@@ -116,27 +122,41 @@ with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
 			from tensorflow.python.tools.inspect_checkpoint import print_tensors_in_checkpoint_file
 			print_tensors_in_checkpoint_file(file_name=args.model_recover, tensor_name='', all_tensors=True)
 			exit()
-	writer = tf.summary.FileWriter(log_folder+"/"+run, sess.graph)
+	# writer = tf.summary.FileWriter(log_folder+"/"+run, sess.graph)
 
 	if args.spacenet == "":
-		print("Use the 20-city datasets")
 		# dataset partition
-		indrange_train = []
-		indrange_test = []
-		indrange_validation = []
 
-		for x in range(180):
-			if x % 10 < 8 :
-				indrange_train.append(x)
+		if "20cities" in osmdataset:
+			print("Use the 20-city datasets")
+			indrange_train = []
+			indrange_test = []
+			indrange_validation = []
+			for x in range(180):
+				if x % 10 < 8 :
+					indrange_train.append(x)
 
-			if x % 10 == 9:
-				indrange_test.append(x)
+				if x % 10 == 9:
+					indrange_test.append(x)
 
-			if x % 20 == 18:
-				indrange_validation.append(x)
+				if x % 20 == 18:
+					indrange_validation.append(x)
 
-			if x % 20 == 8:
-				indrange_test.append(x)
+				if x % 20 == 8:
+					indrange_test.append(x)
+		elif "omani_cities" in osmdataset:
+			print("Use the Omani cities dataset")
+			rs = np.random.RandomState(np.random.MT19937(np.random.SeedSequence(987654321)))
+			indices = list(range(145))
+			rs.shuffle(indices)
+			i_t = int(len(indices) * 0.7)
+			i_v = i_t + int(len(indices) * 0.1)
+			indrange_train = indices[:i_t]
+			indrange_validation = indices[i_t:i_v]
+			indrange_test = indices[i_v:]
+
+		else:
+			raise NotImplementedError("Unknown dataset")
 
 		print("training set", indrange_train)
 		print("testing set", indrange_test)
@@ -158,8 +178,8 @@ with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
 			if args.mode == "validate":
 				tiles = indrange_validation
 			
-			Popen("mkdir -p rawoutputs_%s" % (args.instance_id), shell=True).wait()
-			Popen("mkdir -p outputs", shell=True).wait() 
+			os.makedirs("rawoutputs_%s" % (args.instance_id), exist_ok=True)
+			os.makedirs("outputs", exist_ok=True)
 
 			for tile_id in tiles:
 				t0 = time()
@@ -287,16 +307,15 @@ with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
 
 	validation_data = []
 
-	test_size = 32
+	test_size = len(indrange_validation)
 
-	for j in range(test_size/batch_size):
+	for j in range(test_size//batch_size):
 		input_sat, gt_prob, gt_vector, gt_seg= dataloader_test.getBatch(batch_size)
 		validation_data.append([np.copy(input_sat), np.copy(gt_prob), np.copy(gt_vector), np.copy(gt_seg)])
 
 
-	step = args.init_step
 	lr = args.lr
-	sum_loss = 0 
+	sum_loss = 0.
 
 	gt_imagegraph = np.zeros((batch_size, image_size, image_size, 2 + 4*max_degree))
 
@@ -305,13 +324,28 @@ with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
 	t_last = time() 
 	t_train = 0 
 
-	test_loss = 0
-	
-	sum_prob_loss = 0
-	sum_vector_loss = 0
-	sum_seg_loss = 0 
+	test_loss = 0.
+	lowest_test_loss = np.inf
 
-	while True:
+	summary_writer = tf.compat.v1.summary.FileWriter(model_save_folder)
+	loss_ph = tf.compat.v1.placeholder(tf.float32, ())
+	tf.compat.v1.summary.scalar(name="loss", tensor=loss_ph)
+	test_loss_ph = tf.compat.v1.placeholder(tf.float32, ())
+	tf.compat.v1.summary.scalar(name="test_loss", tensor=test_loss_ph)
+	prob_loss_ph = tf.compat.v1.placeholder(tf.float32, ())
+	tf.compat.v1.summary.scalar(name="prob_loss", tensor=prob_loss_ph)
+	vector_loss_ph = tf.compat.v1.placeholder(tf.float32, ())
+	tf.compat.v1.summary.scalar(name="vector_loss", tensor=vector_loss_ph)
+	seg_loss_ph = tf.compat.v1.placeholder(tf.float32, ())
+	tf.compat.v1.summary.scalar(name="seg_loss", tensor=seg_loss_ph)
+	summaries = tf.compat.v1.summary.merge_all()
+
+	sum_prob_loss = 0.
+	sum_vector_loss = 0.
+	sum_seg_loss = 0.
+
+	NUM_STEPS = 300000
+	for step in tqdm(range(args.init_step, NUM_STEPS+2)):
 		t0 = time()
 		input_sat, gt_prob, gt_vector, gt_seg = dataloader_train.getBatch(batch_size)
 		t_load += time() - t0 
@@ -333,9 +367,9 @@ with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
 
 		t_train += time() - t0 			
 
-		if step % 10 == 0:
-			sys.stdout.write("\rbatch:%d "%step + ">>" * ((step - (step/200)*200)/10) + "--" * (((step/200+1)*200-step)/10))
-			sys.stdout.flush()
+		# if step % 10 == 0:
+		# 	sys.stdout.write("\rbatch:%d "%step + ">>" * int((step - (step/200)*200)/10) + "--" * int(((step/200+1)*200-step)/10))
+		# 	sys.stdout.flush()
 
 		if step > -1 and step % 200 == 0:
 			sum_loss /= 200
@@ -343,7 +377,7 @@ with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
 			if step % 1000 == 0 or (step < 1000 and step % 200 == 0):
 				test_loss = 0
 
-				for j in range(-1,test_size/batch_size):
+				for j in range(-1,test_size//batch_size):
 					if j >= 0:
 						input_sat, gt_prob, gt_vector, gt_seg = validation_data[j][0], validation_data[j][1], validation_data[j][2], validation_data[j][3]
 					if j == 0:
@@ -366,15 +400,19 @@ with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
 
 							# segmentation output (joint training)
 							output_img = (output[k,:,:,-2] * 255.0).reshape((image_size,image_size)).astype(np.uint8)
-							Image.fromarray(output_img).save(validation_folder+"/tile%d_output_seg.png" % (j*batch_size+k))
-							Image.fromarray(((gt_seg[k,:,:,0] + 0.5) * 255.0).reshape((image_size, image_size)).astype(np.uint8)).save(validation_folder+"/tile%d_gt_seg.png" % (j*batch_size+k))
+							Image.fromarray(output_img).save(
+								os.path.join(validation_folder, "tile%d_output_seg.png" % (j*batch_size+k)))
+							Image.fromarray(((gt_seg[k,:,:,0] + 0.5) * 255.0).reshape((image_size, image_size)).astype(np.uint8)).save(
+								os.path.join(validation_folder, "tile%d_gt_seg.png" % (j*batch_size+k)))
 
 							# keypoints 
 							output_keypoints_img = (output[k,:,:,0] * 255.0).reshape((image_size,image_size)).astype(np.uint8)
-							Image.fromarray(output_keypoints_img).save(validation_folder+"/tile%d_output_keypoints.png" % (j*batch_size+k))
+							Image.fromarray(output_keypoints_img).save(
+								os.path.join(validation_folder, "tile%d_output_keypoints.png" % (j*batch_size+k)))
 
 							# input satellite
-							Image.fromarray(input_sat_img).save(validation_folder+"/tile%d_input_sat.png" % (j*batch_size+k))
+							Image.fromarray(input_sat_img).save(
+								os.path.join(validation_folder, "tile%d_input_sat.png" % (j*batch_size+k)))
 								
 							# todo 			
 							#ImageGraphVis(output[k,:,:,0:2 + 4*max_degree].reshape((image_size, image_size, 2 + 4*max_degree )), validation_folder+"/tile%d_output_graph_0.01.png" % (j*batch_size+k), thr=0.01, imagesize = image_size)
@@ -386,12 +424,21 @@ with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
 				
 			print("")
 			print("step", step, "loss", sum_loss, "test_loss", test_loss, "prob_loss", sum_prob_loss/200.0, "vector_loss", sum_vector_loss/200.0, "seg_loss", sum_seg_loss/200.0)
-			
+			summ = sess.run(
+				summaries,
+				feed_dict={
+					loss_ph: sum_loss,
+					test_loss_ph: test_loss,
+					prob_loss_ph: sum_prob_loss/200.0,
+					vector_loss_ph: sum_vector_loss/200.0,
+					seg_loss_ph: sum_seg_loss/200.0
+					})
+			summary_writer.add_summary(summ, global_step=step)
 
-			sum_prob_loss = 0
-			sum_vector_loss = 0
-			sum_seg_loss = 0
-			sum_loss = 0 
+			sum_prob_loss = 0.
+			sum_vector_loss = 0.
+			sum_seg_loss = 0.
+			sum_loss = 0. 
 
 
 		if step > 0 and step % 400 == 0:
@@ -406,12 +453,12 @@ with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
 			t_load = 0 
 			t_train = 0 
 
+		if test_loss < lowest_test_loss:
+			lowest_test_loss = test_loss
+			model.saveModel(os.path.join(model_save_folder, "model_best"))
+
 		if step > 0 and (step % 10000 == 0):
-			model.saveModel(model_save_folder + "model%d" % step)
+			model.saveModel(os.path.join(model_save_folder, "model%d" % step))
 
 		if step > 0 and step % args.lr_decay_step == 0:
 			lr = lr * args.lr_decay
-
-		step += 1
-		if step == 300000+2:
-			break 

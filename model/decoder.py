@@ -905,7 +905,8 @@ def DecodeAndVis(imagegraph, filename, imagesize=256, max_degree=6, thr=0.5, edg
 	Image.fromarray(rgb).save(filename+"_imagegraph.png")
 	Image.fromarray(rgb2).save(filename+"_intersection_node.png")
 
-	pickle.dump(graph, open(filename+"_graph.p","w"))
+	with open(filename+"_graph.p","wb") as fp:
+		pickle.dump(graph, fp)
 
 	return graph
 

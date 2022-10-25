@@ -1,0 +1,4 @@
+opencv-contrib-python-headless
+rtree
+tqdm
+tensorflow>=1.14,<2

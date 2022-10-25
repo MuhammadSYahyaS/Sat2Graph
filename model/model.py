@@ -1,19 +1,6 @@
 import numpy as np
 import tensorflow as tf
-import tflearn
-from tensorflow.contrib.layers.python.layers import batch_norm
-import random
-import pickle 
-import scipy.ndimage as nd 
-import scipy 
-import math
-import svgwrite
-from svgwrite.image import Image as svgimage
-from PIL import Image
-import sys 
-import os 
 from resnet import resblock as residual_block
-from resnet import relu
 from resnet import batch_norm as batch_norm_resnet  
 
 import tf_common_layer as common
@@ -90,18 +77,6 @@ class Sat2GraphModel():
 
 		self.sess.run(tf.global_variables_initializer())
 		self.saver = tf.train.Saver(max_to_keep=10)
-
-		self.summary_loss = []
-		
-		self.test_loss =  tf.placeholder(tf.float32)
-		self.train_loss =  tf.placeholder(tf.float32)
-		self.l2_grad = tf.placeholder(tf.float32)
-
-		self.summary_loss.append(tf.summary.scalar('loss/test', self.test_loss))
-		self.summary_loss.append(tf.summary.scalar('loss/train', self.train_loss))
-		self.summary_loss.append(tf.summary.scalar('grad/l2', self.l2_grad))
-
-		self.merged_summary = tf.summary.merge_all()
 
 
 	def class_reduce_block(self, x, in_ch, out_ch, name, resnet_step = 0, k = 3):
@@ -471,12 +446,3 @@ class Sat2GraphModel():
 
 	def restoreModel(self, path):
 		self.saver.restore(self.sess, path)
-
-	def addLog(self, test_loss, train_loss, l2_grad):
-		feed_dict = {
-			self.test_loss : test_loss,
-			self.train_loss : train_loss,
-			self.l2_grad : l2_grad,
-		}
-		return self.sess.run(self.merged_summary, feed_dict=feed_dict)
-
