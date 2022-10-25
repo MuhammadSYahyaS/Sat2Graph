@@ -1,11 +1,29 @@
 import math 
 import numpy as np 
 import os 
-import scipy.ndimage
 import matplotlib.pyplot as plt
-from PIL import Image 
-from subprocess import Popen 
+import requests
+import shutil
 from time import time, sleep 
+
+def download_file(url: str, sess=None):
+	local_filename = url.split('/')[-1]
+	if sess:
+		get_f = sess.get
+	else:
+		get_f = requests.get
+	# NOTE the stream=True parameter below
+	with get_f(url, stream=True) as r:
+		r.raise_for_status()
+		with open(local_filename, 'wb') as f:
+			for chunk in r.iter_content(chunk_size=8192): 
+				# If you have chunk encoded response uncomment if
+				# and set chunk_size parameter to None.
+				#if chunk: 
+				f.write(chunk)
+	return local_filename
+
+SESS = requests.Session()
 
 def lonlat2mapboxTile(lonlat, zoom):
 	n = np.exp2(zoom)
@@ -31,7 +49,6 @@ MAPBOX_ACCESS_TOKEN = os.environ.get("MAPBOX_ACCESS_TOKEN", "")
 
 def downloadMapBox(zoom, p, outputname):
 	url = "https://c.tiles.mapbox.com/v4/mapbox.satellite/%d/%d/%d@2x.jpg?access_token=%s" % (zoom, p[0], p[1], MAPBOX_ACCESS_TOKEN)
-	filename = "%d@2x.jpg?access_token=%s" % (p[1], MAPBOX_ACCESS_TOKEN)
 
 	Succ = False
 
@@ -39,10 +56,12 @@ def downloadMapBox(zoom, p, outputname):
 	retry_timeout = 10
 
 	while Succ != True :
-		Popen("gtimeout 30s wget "+url, shell = True).wait()
-		Popen("timeout 30s wget "+url, shell = True).wait()
+		try:
+			filename = download_file(url, SESS)
+		except Exception:
+			continue
 		Succ = os.path.isfile(filename) 
-		Popen("mv \""+filename+"\" "+outputname, shell=True).wait()
+		shutil.move(filename, outputname)
 		if Succ != True:
 			sleep(retry_timeout)
 			retry_timeout += 10

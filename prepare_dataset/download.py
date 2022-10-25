@@ -1,12 +1,12 @@
 import sys  
+import os
 import json 
-from subprocess import Popen  
 import mapdriver as md 
 import mapbox as md2
 import graph_ops as graphlib 
 import math 
 import numpy as np 
-import scipy.misc 
+import shutil
 from PIL import Image 
 import pickle 
 
@@ -30,15 +30,15 @@ for name_cfg in sys.argv[1:]:
 
 
 print("total regions", total_regions)
+os.makedirs("tmp", exist_ok=True)
+# os.makedirs("googlemap", exist_ok=True)
 
-Popen("mkdir tmp", shell=True).wait()
-#Popen("mkdir googlemap", shell=True).wait() 
 
 dataset_folder = "global_dataset_mapbox_no_service_road"
 folder_mapbox_cache = "mapbox_cache/"
 
-Popen("mkdir %s" % dataset_folder, shell=True).wait()
-Popen("mkdir %s" % folder_mapbox_cache, shell=True).wait()
+os.makedirs(dataset_folder, exist_ok=False)
+os.makedirs(folder_mapbox_cache, exist_ok=True)
 
 # download imagery and osm maps 
 

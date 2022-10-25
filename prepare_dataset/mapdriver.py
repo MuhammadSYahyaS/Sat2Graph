@@ -4,6 +4,8 @@ import sys
 import numpy as np
 from subprocess import Popen
 import math
+import requests
+import shutil
 import time
 import os.path
 import scipy.ndimage
@@ -22,6 +24,24 @@ ORIGIN_SHIFT = 2 * math.pi * 6378137 / 2.0
 
 img_cache = {}
 
+def download_file(url: str, sess=None):
+	local_filename = url.split('/')[-1]
+	if sess:
+		get_f = sess.get
+	else:
+		get_f = requests.get
+	# NOTE the stream=True parameter below
+	with get_f(url, stream=True) as r:
+		r.raise_for_status()
+		with open(local_filename, 'wb') as f:
+			for chunk in r.iter_content(chunk_size=8192): 
+				# If you have chunk encoded response uncomment if
+				# and set chunk_size parameter to None.
+				#if chunk: 
+				f.write(chunk)
+	return local_filename
+
+SESS = requests.Session()
 
 def lonLatToMeters(lon, lat):
     mx = lon * ORIGIN_SHIFT / 180.0
@@ -348,8 +368,11 @@ class OSMLoader:
         #Popen("mkdir -p tmp").wait()
         if osmfile  is None:
             while not os.path.exists("tmp/map?bbox="+sub_range):
-                Popen("wget http://overpass-api.de/api/map?bbox="+sub_range, shell = True).wait()
-                Popen("mv \"map?bbox="+sub_range+"\" tmp/", shell = True).wait()
+                try:
+                    f_name = download_file("http://overpass-api.de/api/map?bbox="+sub_range, SESS)
+                except Exception:
+                    continue
+                shutil.move(f_name, "tmp/")
                 if not os.path.exists("tmp/map?bbox="+sub_range):
                     print("Error. Wait for one minitue")
                     sleep(60)   
