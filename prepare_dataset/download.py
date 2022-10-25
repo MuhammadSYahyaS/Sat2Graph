@@ -54,7 +54,7 @@ for item in dataset_cfg:
 
 	for i in range(ilat):
 		for j in range(ilon):
-			print(c, total_regions)
+			print("Processing region %d of %d..." % (c, total_regions))
 
 			if c % tn == tid:
 				pass
@@ -84,12 +84,12 @@ for item in dataset_cfg:
 			else:
 				zoom = 16
 
-			print(lat_st, lon_st, lat_ed, lon_ed)
+			print("Coordinate bounding box: [%f, %f, %f, %f]" % (lat_st, lon_st, lat_ed, lon_ed))
 			
 
 			# comment out the image downloading part 
 			img, _ = md2.GetMapInRect(lat_st, lon_st, lat_ed, lon_ed, start_lat = lat_st, start_lon = lon_st, zoom=zoom, folder = folder_mapbox_cache)
-			print(np.shape(img))
+			print("Original map image shape:", np.shape(img))
 
 			img = np.array(Image.fromarray(img.astype(np.uint8)).resize((2048,2048)))
 			Image.fromarray(img).save(dataset_folder+"/region_%d_sat.png" % c)

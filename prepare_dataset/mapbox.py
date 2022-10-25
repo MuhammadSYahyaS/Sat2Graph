@@ -52,7 +52,7 @@ def downloadMapBox(zoom, p, outputname):
 
 	Succ = False
 
-	print(outputname)
+	print("Downloading mapbox tile to '%s'" % outputname)
 	retry_timeout = 10
 
 	while Succ != True :
@@ -80,9 +80,9 @@ def GetMapInRect(min_lat,min_lon, max_lat, max_lon , folder = "mapbox_cache/", s
 
 	ok = True
 
-	print(mapbox1, mapbox2)
+	print("Using mapbox tiles range from ", mapbox1, " to ", mapbox2)
 
-	print((mapbox2[0] - mapbox1[0])*(mapbox1[1] - mapbox2[1]))
+	print("Total mapbox tiles:", (mapbox2[0] - mapbox1[0])*(mapbox1[1] - mapbox2[1]))
 
 	dimx = (mapbox2[0] - mapbox1[0]+1) * 512 # lon
 	dimy = (mapbox1[1] - mapbox2[1]+1) * 512 # lat 
