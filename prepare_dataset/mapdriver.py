@@ -384,7 +384,13 @@ class OSMLoader:
 
 
         roadForMotorDict = {'motorway','trunk','primary','secondary','tertiary','residential'}
-        roadForMotorBlackList = {'None', 'pedestrian','footway','bridleway','steps','path','sidewalk','cycleway','proposed','construction','bus_stop','crossing','elevator','emergency_access_point','escape','give_way'}
+        # roadForMotorBlackList = {'None', 'pedestrian','footway','bridleway','steps','path','sidewalk','cycleway','proposed','construction','bus_stop','crossing','elevator','emergency_access_point','escape','give_way'}
+        roadForMotorBlackList = {
+            'None','steps','sidewalk',
+            'proposed','construction','bus_stop','crossing','elevator', 'emergency_bay',
+            'emergency_access_point',
+            'give_way', 'milestone', 'traffic_signals', 'traffic_mirror',
+            'trailhead', 'toll_gantry', 'street_lamp', 'stop', 'speed_camera', 'platform', 'mini_roundabout'}
 
 
         mapxml = xml.etree.ElementTree.parse(filename).getroot()

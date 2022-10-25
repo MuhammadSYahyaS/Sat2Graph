@@ -1,0 +1,9 @@
+[
+    {"cityname": "muscat", "lat": 23.542161, "lon": 58.319248, "lat_n": 3, "lon_n": 6},
+    {"cityname": "barka", "lat": 23.63940565192444, "lon": 57.83207009316699, "lat_n": 3, "lon_n": 3},
+    {"cityname": "fahud", "lat": 22.210476022733452, "lon": 56.480976151424095, "lat_n": 3, "lon_n": 3},
+    {"cityname": "nizwa", "lat": 22.955886159893446, "lon": 57.51990815700525, "lat_n": 3, "lon_n": 3},
+    {"cityname": "sohar", "lat": 24.306401556388, "lon": 56.64207013047318, "lat_n": 8, "lon_n": 4},
+    {"cityname": "salalah", "lat": 16.993959521156878, "lon": 53.98856562796844, "lat_n": 4, "lon_n": 8},
+    {"cityname": "seeb", "lat": 23.575078877267426, "lon": 58.03744014152768, "lat_n": 6, "lon_n": 6}
+]
