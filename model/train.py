@@ -147,7 +147,11 @@ with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
 		elif "omani_cities" in osmdataset:
 			print("Use the Omani cities dataset")
 			rs = np.random.RandomState(np.random.MT19937(np.random.SeedSequence(987654321)))
-			indices = list(range(180))
+			indices = set(range(180))
+			exclude_no_roads = set([27, 28, 34, 75, 76])
+			exclude_too_few_roads = set([29, 30, 31, 35, 39, 41, 42, 49, 111, 126, 127, 168, 177, 178])
+			# include_no_roads = set([33, 38, 72, 110, 118])
+			indices = list(indices.difference(exclude_no_roads.union(exclude_too_few_roads)))
 			rs.shuffle(indices)
 			i_t = int(len(indices) * 0.7)
 			i_v = i_t + int(len(indices) * 0.1)
