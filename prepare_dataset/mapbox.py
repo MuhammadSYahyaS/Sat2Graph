@@ -58,7 +58,10 @@ def downloadMapBox(zoom, p, outputname):
 	while Succ != True :
 		try:
 			filename = download_file(url, SESS)
-		except Exception:
+		except Exception as exc:
+			print(
+				"Failed downloading mapbox tile to '%s': %s" % (outputname, str(exc)))
+			print("Retrying...")
 			continue
 		Succ = os.path.isfile(filename) 
 		shutil.move(filename, outputname)
