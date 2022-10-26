@@ -5,9 +5,12 @@ import matplotlib.pyplot as plt
 import requests
 import shutil
 from time import time, sleep 
+import tempfile
 
-def download_file(url: str, sess=None):
+def download_file(url: str, sess=None, out_dir=None):
 	local_filename = url.split('/')[-1]
+	if out_dir:
+		local_filename = os.path.join(out_dir, local_filename)
 	if sess:
 		get_f = sess.get
 	else:
@@ -56,15 +59,16 @@ def downloadMapBox(zoom, p, outputname):
 	retry_timeout = 10
 
 	while Succ != True :
-		try:
-			filename = download_file(url, SESS)
-		except Exception as exc:
-			print(
-				"Failed downloading mapbox tile to '%s': %s" % (outputname, str(exc)))
-			print("Retrying...")
-			continue
-		Succ = os.path.isfile(filename) 
-		shutil.move(filename, outputname)
+		with tempfile.TemporaryDirectory() as tmpdirname:
+			try:
+				filename = download_file(url, SESS, tmpdirname)
+			except Exception as exc:
+				print(
+					"Failed downloading mapbox tile to '%s': %s" % (outputname, str(exc)))
+				print("Retrying...")
+				continue
+			Succ = os.path.isfile(filename) 
+			shutil.move(filename, outputname)
 		if Succ != True:
 			sleep(retry_timeout)
 			retry_timeout += 10
