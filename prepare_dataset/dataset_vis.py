@@ -21,7 +21,7 @@ def drawgraph(graph, filename):
 
 with open("global_dataset_mapbox_no_service_road/region_%s_graph_gt.pickle" % sys.argv[1], "rb") as fp:
 	graph1 = pickle.load(fp)
-with open(open("global_dataset_mapbox_no_service_road/region_%s_refine_gt_graph.p" % sys.argv[1]), "rb") as fp:
+with open("global_dataset_mapbox_no_service_road/region_%s_refine_gt_graph.p" % sys.argv[1], "rb") as fp:
 	graph2 = pickle.load(fp)
 
 
