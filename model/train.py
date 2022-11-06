@@ -333,15 +333,15 @@ with tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) as sess:
 
 	summary_writer = tf.compat.v1.summary.FileWriter(model_save_folder)
 	loss_ph = tf.compat.v1.placeholder(tf.float32, ())
-	tf.compat.v1.summary.scalar(name="loss", tensor=loss_ph)
+	tf.compat.v1.summary.scalar(name="train/loss", tensor=loss_ph)
 	test_loss_ph = tf.compat.v1.placeholder(tf.float32, ())
-	tf.compat.v1.summary.scalar(name="test_loss", tensor=test_loss_ph)
+	tf.compat.v1.summary.scalar(name="val/test_loss", tensor=test_loss_ph)
 	prob_loss_ph = tf.compat.v1.placeholder(tf.float32, ())
-	tf.compat.v1.summary.scalar(name="prob_loss", tensor=prob_loss_ph)
+	tf.compat.v1.summary.scalar(name="train/prob_loss", tensor=prob_loss_ph)
 	vector_loss_ph = tf.compat.v1.placeholder(tf.float32, ())
-	tf.compat.v1.summary.scalar(name="vector_loss", tensor=vector_loss_ph)
+	tf.compat.v1.summary.scalar(name="train/vector_loss", tensor=vector_loss_ph)
 	seg_loss_ph = tf.compat.v1.placeholder(tf.float32, ())
-	tf.compat.v1.summary.scalar(name="seg_loss", tensor=seg_loss_ph)
+	tf.compat.v1.summary.scalar(name="train/seg_loss", tensor=seg_loss_ph)
 	summaries = tf.compat.v1.summary.merge_all()
 
 	sum_prob_loss = 0.
