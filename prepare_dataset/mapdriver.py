@@ -370,9 +370,10 @@ class OSMLoader:
             while not os.path.exists("tmp/map?bbox="+sub_range):
                 try:
                     f_name = download_file("http://overpass-api.de/api/map?bbox="+sub_range, SESS)
-                except Exception:
-                    print("Failed downloading OSM!")
+                except Exception as exc:
+                    print("Failed downloading OSM: %s" % exc)
                     print("Retrying...")
+                    sleep(20)
                     continue
                 shutil.move(f_name, "tmp/")
                 if not os.path.exists("tmp/map?bbox="+sub_range):
