@@ -96,19 +96,25 @@ def graphDensify(node_neighbor, density = 0.00020):
 
 	return new_node_neighbor
 
-def graph2RegionCoordinate(node_neighbor, region):
+def graph2RegionCoordinate(node_neighbor, region, region_pixels=2048):
 	new_node_neighbor = {}
 
 	for node, nei in node_neighbor.items():
 		loc0 = node 
 		for loc1 in nei:
-			x0 = (loc0[1] - region[1])/(region[3]-region[1])*2048
-			y0 = (region[2]-loc0[0])/(region[2]-region[0])*2048
-			x1 = (loc1[1] - region[1])/(region[3]-region[1])*2048
-			y1 = (region[2]-loc1[0])/(region[2]-region[0])*2048
+			x0 = (loc0[1] - region[1])/(region[3]-region[1])*region_pixels
+			y0 = (region[2]-loc0[0])/(region[2]-region[0])*region_pixels
+			x1 = (loc1[1] - region[1])/(region[3]-region[1])*region_pixels
+			y1 = (region[2]-loc1[0])/(region[2]-region[0])*region_pixels
 
 			n1key = (y0,x0)
 			n2key = (y1,x1)
+
+			# filter out nodes outside the region
+			n1_is_outside = x0 < 0 or x0 > region_pixels or y0 < 0 or y0 > region_pixels
+			n2_is_outside = x1 < 0 or x1 > region_pixels or y1 < 0 or y1 > region_pixels
+			if n1_is_outside and n2_is_outside:
+				continue
 
 			new_node_neighbor = graphInsert(new_node_neighbor, n1key, n2key)
 
@@ -139,7 +145,7 @@ def graphVis2048(node_neighbor, region, filename):
 
 	cv2.imwrite(filename, img)
 
-def graphVis2048Segmentation(node_neighbor, region, filename, size=2048):
+def graphVis2048Segmentation(node_neighbor, region, filename, size=2048, line_width=2):
 	img = np.zeros((size,size),dtype=np.uint8)
 	
 
@@ -151,7 +157,7 @@ def graphVis2048Segmentation(node_neighbor, region, filename, size=2048):
 			x1 = int((loc1[1] - region[1])/(region[3]-region[1])*size)
 			y1 = int((region[2]-loc1[0])/(region[2]-region[0])*size)
 
-			cv2.line(img, (x0,y0), (x1,y1), (255),2)
+			cv2.line(img, (x0,y0), (x1,y1), (255),line_width)
 
 
 	cv2.imwrite(filename, img)
