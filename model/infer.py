@@ -43,8 +43,10 @@ snap_w = 50
 
 
 # run the model 
-
 sat_img = plt.imread(input_file)
+if input_file.lower().endswith(".png"):
+	sat_img *= 255.0
+	sat_img = sat_img.astype(np.uint8)
 sat_img = np.array(Image.fromarray(sat_img).resize((2048,2048))).astype(np.float)
 
 max_v = 255
@@ -95,7 +97,11 @@ t0 = time()
 
 
 # vis 
-sat_img = plt.imread(input_file)
+if input_file.lower().endswith(".png"):
+	sat_img = plt.imread(input_file) * 255.0
+	sat_img = sat_img.astype(np.uint8)
+else:
+	sat_img = plt.imread(input_file).astype(np.uint8)
 sat_img = np.array(Image.fromarray(sat_img).resize((2048,2048)))
 
 for k,v in graph.items():

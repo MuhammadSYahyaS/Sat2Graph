@@ -106,7 +106,10 @@ def GetMapInRect(min_lat,min_lon, max_lat, max_lon , folder = "mapbox_cache/", s
 
 			if Succ == True:
 				try:
-					subimg = plt.imread(filename).astype(np.uint8)
+					subimg = plt.imread(filename)
+					if filename.lower().endswith(".png"):
+						subimg *= 255.0
+						subimg = subimg.astype(np.uint8)
 				except:
 					print("image file is damaged, try to redownload it", filename)
 					Succ = False
@@ -115,7 +118,10 @@ def GetMapInRect(min_lat,min_lon, max_lat, max_lon , folder = "mapbox_cache/", s
 				Succ = downloadMapBox(zoom, [i+mapbox1[0],j+mapbox2[1]], filename)
 
 			if Succ:
-				subimg = plt.imread(filename).astype(np.uint8)
+				subimg = plt.imread(filename)
+				if filename.lower().endswith(".png"):
+					subimg *= 255.0
+					subimg = subimg.astype(np.uint8)
 				img[j*512:(j+1)*512, i*512:(i+1)*512,:] = subimg
 
 

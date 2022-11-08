@@ -108,6 +108,9 @@ def TOPOGenerateStartingPoints(OSMMap, check = True, density = 0.00050, region =
 
     if image != 'NULL':
         img = plt.imread(image)
+        if image.lower().endswith(".png"):
+            img *= 255.0
+            img = img.astype(np.uint8)
         sizex = np.shape(img)[0]
         sizey = np.shape(img)[1]
 
@@ -379,8 +382,11 @@ def TOPOGeneratePairs(GPSMap, OSMMap, OSMList, threshold = 0.00010, region = Non
 def TOPOGenerateList(GPSMap, OSMMap, check = True, threshold = 0.00010, region = None, image = None, direction = False):
     result = {}
 
-    
-    img = plt.imread(image)
+    if image.lower().endswith(".png"):
+        img = plt.imread(image) * 255.0
+        img = img.astype(np.uint8)
+    else:
+        img = plt.imread(image).astype(np.uint8)
 
     sizex = np.shape(img)[0]
     sizey = np.shape(img)[1]

@@ -152,11 +152,11 @@ class Sat2GraphDataLoader():
 	def loadtile(self, ind):
 		
 		try:
-			sat_img = plt.imread(self.folder + "/region_%d_sat.png" % ind).astype(np.float)
+			sat_img = plt.imread(self.folder + "/region_%d_sat.png" % ind)
+			max_v = 1.0
 		except:
 			sat_img = plt.imread(self.folder + "/region_%d_sat.jpg" % ind).astype(np.float)
-					
-		max_v = np.amax(sat_img) + 0.0001 
+			max_v = 255.0
 
 		sat_img = (sat_img.astype(np.float)/ max_v - 0.5) * 0.9 
 
@@ -254,10 +254,12 @@ class Sat2GraphDataLoader():
 			
 			try:
 				sat_img = plt.imread(self.folder + "/region_%d_sat.png" % ind)
+				max_v = 1.0
 			except:
-				sat_img = plt.imread(self.folder + "/region_%d_sat.jpg" % ind)
+				sat_img = plt.imread(self.folder + "/region_%d_sat.jpg" % ind).astype(np.float)
+				max_v = 255.0
 
-			max_v = np.amax(sat_img) + 0.0001 
+			# max_v = np.amax(sat_img) + 0.0001 
 
 			
 
@@ -269,6 +271,9 @@ class Sat2GraphDataLoader():
 				neighbors = neighbor_transpos(neighbors)
 
 			gt_seg = plt.imread(self.folder + "/region_%d_gt.png" % ind)
+			# PNG read as 0.0 - 1.0 float
+			gt_seg *= 255
+			gt_seg = gt_seg.astype(np.uint8)
 
 			self.rotmask[i,:,:] = np.ones((self.dataset_image_size, self.dataset_image_size))
 

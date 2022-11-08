@@ -394,7 +394,9 @@ def _vis(_node_neighbors, save_file, size=2048, bk=None, draw_intersection = Fal
 
 	if bk is not None:
 		img = plt.imread(bk)
-
+		if bk.lower().endswith(".png"):
+			img *= 255
+			img = img.astype(np.uint8)
 		img = img.astype(np.float)
 		img = (img - 127)*0.75 + 127 
 		img = img.astype(np.uint8)

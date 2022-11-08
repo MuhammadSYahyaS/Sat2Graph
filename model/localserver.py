@@ -70,8 +70,10 @@ class S(BaseHTTPRequestHandler):
 		snap_w = data["snap_w"]
 
 		# run the model 
-
-		sat_img = plt.imread(input_file).astype(np.float)
+		sat_img = plt.imread(input_file)
+		if input_file.lower().endswith(".png"):
+			sat_img *= 255.0
+			sat_img = sat_img.astype(np.uint8)
 		max_v = 255
 		sat_img = (sat_img.astype(np.float)/ max_v - 0.5) * 0.9 
 		sat_img = sat_img.reshape((1,704,704,3))
