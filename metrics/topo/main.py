@@ -33,8 +33,10 @@ lon_top_left = -71.0
 min_lat = 41.0 
 max_lon = -71.0 
 
-map1 = pickle.load(open(args.graph_gt, "r"))
-map2 = pickle.load(open(args.graph_prop, "r"))
+with open(args.graph_gt, "rb") as fp:
+    map1 = pickle.load(fp)
+with open(args.graph_prop, "rb") as fp:
+    map2 = pickle.load(fp)
 
 
 def xy2latlon(x,y):
@@ -133,7 +135,8 @@ topoResult =  topo.TOPOWithPairs(graph_prop, graph_gt, lmap, losm, r =r, step = 
 
 #TOPORender.RenderGraphSVGMap(graph_gt, graph_prop, sys.argv[3].replace('txt','topo.svg'), topoResult)
 
-pickle.dump([losm, topoResult, region],  open(args.output.replace('txt','topo.p'),'w'))
+with open(args.output.replace('txt','topo.p'), 'wb') as fp:
+    pickle.dump([losm, topoResult, region], fp)
 
 
 

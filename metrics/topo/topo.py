@@ -11,7 +11,6 @@ import matplotlib.pyplot as plt
 from rtree import index
 from time import time 
 from hopcroftkarp import HopcroftKarp
-from sets import Set
 from subprocess import Popen
 
 
@@ -801,7 +800,7 @@ def TOPOWithPairs(GPSMap, OSMMap, GPSList, OSMList, step = 0.00005, r = 0.00300,
                     if marble in bigraph.keys():
                         bigraph[marble].add(hole_id)
                     else:
-                        bigraph[marble] = Set([hole_id])
+                        bigraph[marble] = set([hole_id])
 
                     bipartite_graph.append((marble, hole_id, ddd))
 
@@ -881,7 +880,7 @@ def TOPOWithPairs(GPSMap, OSMMap, GPSList, OSMList, step = 0.00005, r = 0.00300,
                     if hole in bigraph.keys():
                         bigraph[hole].add(marble_id)
                     else:
-                        bigraph[hole] = Set([marble_id])
+                        bigraph[hole] = set([marble_id])
                     matchedNum += 1
                     #break
 
@@ -1060,7 +1059,7 @@ def TOPOWithPairsNew(GPSMap, OSMMap, GPSList, OSMList, step = 0.00005, r = 0.003
                     if marble in bigraph.keys():
                         bigraph[marble].add(hole_id)
                     else:
-                        bigraph[marble] = Set([hole_id])
+                        bigraph[marble] = set([hole_id])
 
                     n1 = latlonNorm((marble[2], marble[3]))
                     n2 = latlonNorm((hole[2], hole[3]))
