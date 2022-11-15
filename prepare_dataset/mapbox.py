@@ -66,6 +66,7 @@ def downloadMapBox(zoom, p, outputname):
 				print(
 					"Failed downloading mapbox tile to '%s': %s" % (outputname, str(exc)))
 				print("Retrying...")
+				sleep(retry_timeout)
 				continue
 			Succ = os.path.isfile(filename) 
 			shutil.move(filename, outputname)
