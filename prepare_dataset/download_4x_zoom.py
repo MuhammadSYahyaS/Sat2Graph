@@ -1,0 +1,148 @@
+import sys  
+import os
+import json 
+import mapdriver as md 
+import mapbox as md2
+import graph_ops as graphlib 
+import math 
+import numpy as np 
+import shutil
+from PIL import Image
+import pickle 
+import multiprocessing as mp
+from functools import partial
+
+dataset_cfg = []
+total_regions = 0 
+
+tid = 0 #int(sys.argv[1])
+tn = 1 #int(sys.argv[2])
+
+
+for name_cfg in sys.argv[1:]:
+	dataset_cfg_ = json.load(open(name_cfg, "r"))
+
+	
+	for item in dataset_cfg_:
+		dataset_cfg.append(item)
+		ilat = item["lat_n"]
+		ilon = item["lon_n"]
+
+		total_regions += ilat * ilon 
+
+
+print("total regions", total_regions)
+os.makedirs("tmp", exist_ok=True)
+# os.makedirs("googlemap", exist_ok=True)
+
+
+dataset_folder = "global_dataset_mapbox_no_service_road_4x"
+folder_mapbox_cache = "mapbox_cache/"
+
+os.makedirs(dataset_folder, exist_ok=False)
+os.makedirs(folder_mapbox_cache, exist_ok=True)
+
+# download imagery and osm maps 
+
+c = 0
+tiles_needed = 0
+
+def process_region(item, dataset_folder, folder_mapbox_cache, c, i, j):
+	lat = item["lat"]
+	lon = item["lon"]
+
+	lat_st = lat + 2048/111111.0 * i 
+	lon_st = lon + 2048/111111.0 * j / math.cos(math.radians(lat))
+	lat_ed = lat + 2048/111111.0 * (i+1)
+	lon_ed = lon + 2048/111111.0 * (j+1) / math.cos(math.radians(lat))
+
+
+	# download satellite imagery from google
+	# if abs(lat_st) < 33:
+	# 	zoom = 18
+	# else:
+	# 	zoom = 17
+
+	# download satellite imagery from mapbox
+	if abs(lat_st) < 33:
+		zoom = 19
+	else:
+		zoom = 18
+
+	print("Coordinate bounding box: [%f, %f, %f, %f]" % (lat_st, lon_st, lat_ed, lon_ed))
+			
+
+	# comment out the image downloading part 
+	img, _ = md2.GetMapInRect(lat_st, lon_st, lat_ed, lon_ed, start_lat = lat_st, start_lon = lon_st, zoom=zoom, folder = folder_mapbox_cache)
+	print("Original map image shape:", np.shape(img))
+
+	img = np.array(Image.fromarray(img.astype(np.uint8)).resize((8192,8192), resample=Image.Resampling.BICUBIC))
+	Image.fromarray(img).save(dataset_folder+"/region_%d_sat.png" % c)
+
+
+	# download openstreetmap 
+	OSMMap = md.OSMLoader([lat_st,lon_st,lat_ed,lon_ed], False, includeServiceRoad = False)
+
+	node_neighbor = {} # continuous
+
+	for node_id, node_info in OSMMap.nodedict.items():
+		lat = node_info["lat"]
+		lon = node_info["lon"]
+
+		n1key = (lat,lon)
+
+
+		neighbors = []
+		for nid in list(node_info["to"].keys()) + list(node_info["from"].keys()) :
+			if nid not in neighbors:
+				neighbors.append(nid)
+
+		for nid in neighbors:
+			n2key = (OSMMap.nodedict[nid]["lat"],OSMMap.nodedict[nid]["lon"])
+
+			node_neighbor = graphlib.graphInsert(node_neighbor, n1key, n2key)
+					
+			#graphlib.graphVis2048(node_neighbor,[lat_st,lon_st,lat_ed,lon_ed], "raw.png")
+			
+			# interpolate the graph (20 meters interval)
+	node_neighbor = graphlib.graphDensify(node_neighbor)
+	node_neighbor_region = graphlib.graph2RegionCoordinate(node_neighbor, [lat_st,lon_st,lat_ed,lon_ed])
+	prop_graph = dataset_folder+"/region_%d_graph_gt.pickle" % c
+	with open(prop_graph, "wb") as fp:
+		pickle.dump(node_neighbor_region, fp)
+
+	#graphlib.graphVis2048(node_neighbor,[lat_st,lon_st,lat_ed,lon_ed], "dense.png")
+	graphlib.graphVis2048Segmentation(node_neighbor, [lat_st,lon_st,lat_ed,lon_ed], dataset_folder+"/region_%d_" % c + "gt.png", size=8192, line_width=30)
+
+	node_neighbor_refine, sample_points = graphlib.graphGroundTruthPreProcess(node_neighbor_region)
+
+	refine_graph = dataset_folder+"/region_%d_" % c + "refine_gt_graph.p"
+	with open(refine_graph, "wb") as fp:
+		pickle.dump(node_neighbor_refine, fp)
+	with open(dataset_folder+"/region_%d_" % c + "refine_gt_graph_samplepoints.json", "w") as fp:
+		json.dump(sample_points, fp, indent=2)
+
+with mp.Pool(processes=mp.cpu_count()) as pool:
+	for item in dataset_cfg:
+		#prefix = item["cityname"]
+		ilat = item["lat_n"]
+		ilon = item["lon_n"]
+		lat = item["lat"]
+		lon = item["lon"]
+
+		process_region_f = partial(
+			process_region,
+			item=item, dataset_folder=dataset_folder, folder_mapbox_cache=folder_mapbox_cache)
+		multiple_results = []
+		for i in range(ilat):
+			for j in range(ilon):
+				print("Processing region %d of %d..." % (c, total_regions))
+				if c % tn == tid:
+					pass
+				else:
+					c = c + 1
+					continue
+				# process_region(item, dataset_folder, folder_mapbox_cache, c, i, j)
+				multiple_results.append(pool.apply_async(process_region_f, kwds=dict(c=c, i=i, j=j)))
+				c+=1
+		[res.get() for res in multiple_results]
