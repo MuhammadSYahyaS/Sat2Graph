@@ -1,6 +1,12 @@
 # Quick overview of the performance of 1st Sat2Graph model on Omani Cities (mapbox+OSM) dataset
 
+> by Muhammad Shalahuddin Yahya Sunarko
+>
 > To see the original README.md of this repo, click [here](./README.original.md).
+>
+> Citation of Sat2Graph:
+>
+> He, S., Bastani, F., Jagwani, S., Alizadeh, M., Balakrishnan, H., Chawla, S., … Sadeghi, A. (2020). Sat2Graph: Road Graph Extraction through Graph-Tensor Encoding. arXiv [Cs.CV]. Retrieved from http://arxiv.org/abs/2007.09547
 
 ## 1) Basic information  
    1) Architecture: Sat2Graph  
