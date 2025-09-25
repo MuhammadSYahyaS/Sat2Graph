@@ -34,4 +34,4 @@
    1) Solve memory limitation issue, so we can train the model using full data/higher number of data  
    2) Gather more data from other cities, in hope that the model can better generalize and less affected by missing roads  
    3) Filter out training images with incorrect annotations (high effort)  
-   4) Add road networks dataset from Fahud
+   4) Add road networks dataset from targeted cities
